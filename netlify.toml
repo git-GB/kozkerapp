@@ -1,0 +1,28 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  NODE_OPTIONS = "--max_old_space_size=4096"
+  NETLIFY_NEXT_VERIFY_FORMS = "false"
+  # Canvas-specific build environment variables
+  SKIP_CANVAS_PREBUILD = "1"
+  LD_PRELOAD = "/usr/lib/x86_64-linux-gnu/libfreetype.so.6"
+
+[functions]
+  directory = "netlify/functions"
+
+[build.processing.html]
+  pretty_urls = true
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"

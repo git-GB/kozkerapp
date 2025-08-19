@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Netlify Forms</title>
+  </head>
+  <body>
+    <!-- Contact form -->
+    <form name="contact" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="contact" />
+      <input name="name" type="text" />
+      <input name="email" type="email" />
+      <input name="phone" type="text" />
+      <input name="subject" type="text" />
+      <textarea name="message"></textarea>
+      <div hidden>
+        <input name="bot-field" />
+      </div>
+    </form>
+  </body>
+</html>
