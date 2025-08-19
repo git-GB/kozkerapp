@@ -16,16 +16,11 @@ export const metadata: Metadata = {
     "startup tools",
     "growth tools",
     "AI business solutions",
-    "workflow automation",
-    "marketing automation",
-    "SEO tools",
-    "analytics tools",
   ].join(", "),
   authors: [{ name: "KozkerTech" }],
   creator: "KozkerTech",
   publisher: "KozkerTech",
   category: "Business Tools",
-  classification: "Business Software",
   openGraph: {
     title: "AI-Powered Business Tools | KozkerTech",
     description:
@@ -33,21 +28,12 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "KozkerTech",
-    images: [
-      {
-        url: "/og-tools-page.png",
-        width: 1200,
-        height: 630,
-        alt: "KozkerTech AI-Powered Business Tools",
-      },
-    ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "AI-Powered Business Tools | KozkerTech",
     description:
       "Discover 20+ AI-powered business tools designed to streamline workflows, enhance creativity, and drive growth.",
-    images: ["/og-tools-page.png"],
     creator: "@kozkertech",
   },
   robots: {
