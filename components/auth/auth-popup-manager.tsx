@@ -3,22 +3,22 @@
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { AuthModal } from "./auth-modal"
-import { env } from "@/lib/env"
 
 interface AuthPopupManagerProps {
-  autoPopupDelay?: number
+  autoPopupDelay?: number // in milliseconds
   enableAutoPopup?: boolean
 }
 
 export function AuthPopupManager({
-  autoPopupDelay = 5000,
-  enableAutoPopup = env.ENABLE_AUTH_POPUP,
+  autoPopupDelay = 5000, // 5 seconds default
+  enableAutoPopup = true,
 }: AuthPopupManagerProps) {
   const [showModal, setShowModal] = useState(false)
   const [hasAutoPopped, setHasAutoPopped] = useState(false)
   const { user, loading } = useAuth()
 
   useEffect(() => {
+    // Don't show auto-popup if user is already authenticated or loading
     if (loading || user || !enableAutoPopup || hasAutoPopped) {
       return
     }
@@ -31,7 +31,7 @@ export function AuthPopupManager({
       const hoursSinceDismissed = (now - dismissedTime) / (1000 * 60 * 60)
 
       if (hoursSinceDismissed < 24) {
-        return
+        return // Don't show popup if dismissed within last 24 hours
       }
     }
 
@@ -46,9 +46,11 @@ export function AuthPopupManager({
 
   const handleClose = () => {
     setShowModal(false)
+    // Store dismissal time to prevent showing again for 24 hours
     localStorage.setItem("auth-popup-dismissed", new Date().toISOString())
   }
 
+  // Don't render anything if user is authenticated
   if (user) {
     return null
   }

@@ -62,9 +62,7 @@ export function ProfileContent({ user, profile }: ProfileContentProps) {
                   alt={profile?.full_name || user.email || ""}
                 />
                 <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary to-orange-500 text-white">
-                  {(profile?.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "U")
-                    .charAt(0)
-                    .toUpperCase()}
+                  {(profile?.full_name || user.email || "U").charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               {profile?.email_verified && (
@@ -76,9 +74,7 @@ export function ProfileContent({ user, profile }: ProfileContentProps) {
 
             <div className="flex-1 space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {profile?.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "User"}
-                </h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{profile?.full_name || "User"}</h1>
                 {getSubscriptionBadge(profile?.subscription_tier || "free")}
               </div>
 

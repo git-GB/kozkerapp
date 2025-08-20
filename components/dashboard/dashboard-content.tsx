@@ -122,7 +122,7 @@ export function DashboardContent({ user, profile, toolUsage }: DashboardContentP
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-              <p className="text-2xl font-bold text-primary">{profile?.full_name || profile?.email || "User"}</p>
+              <p className="text-2xl font-bold text-primary">{profile?.full_name || user.email}</p>
               <p className="text-sm text-muted-foreground">User Name</p>
             </div>
             <div className="text-center p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg">

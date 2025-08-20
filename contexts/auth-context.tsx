@@ -3,10 +3,15 @@
 import type React from "react"
 import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import type { User, Session, AuthError } from "@supabase/supabase-js"
-import { supabase, isSupabaseConfigured, crossDomainAuth } from "@/lib/supabase/client"
+import { supabase, isSupabaseConfigured } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { env } from "@/lib/env"
+import { authRateLimiter } from "@/lib/security/rate-limiter"
+import { sessionManager, startActivityTracking, stopActivityTracking } from "@/lib/security/session-manager"
+import { errorHandler, getSafeErrorMessage } from "@/lib/security/error-handler"
+import { performanceMonitor } from "@/lib/security/performance-monitor"
+import { validateAndSanitize, signInSchema, signUpSchema } from "@/lib/security/input-validation"
 
+// Types for our auth context
 interface AuthContextType {
   user: User | null
   session: Session | null
@@ -17,8 +22,6 @@ interface AuthContextType {
   signOut: () => Promise<void>
   updateProfile: (updates: any) => Promise<{ error: AuthError | null }>
   isConfigured: boolean
-  syncWithMainDomain: () => Promise<void>
-  checkCrossDomainAuth: () => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -28,41 +31,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-
-  const checkCrossDomainAuth = useCallback(async (): Promise<boolean> => {
-    if (!env.ENABLE_CROSS_DOMAIN_AUTH) return false
-
-    try {
-      // Check for stored auth state from main domain
-      const storedAuth = crossDomainAuth.getStoredAuthState()
-      if (storedAuth && storedAuth.access_token) {
-        // Verify the stored session is still valid
-        const {
-          data: { user },
-          error,
-        } = await supabase.auth.getUser(storedAuth.access_token)
-        if (user && !error) {
-          setUser(user)
-          setSession(storedAuth)
-          return true
-        }
-      }
-    } catch (error) {
-      console.error("Cross-domain auth check failed:", error)
-    }
-    return false
-  }, [])
-
-  const syncWithMainDomain = useCallback(async () => {
-    if (!env.ENABLE_CROSS_DOMAIN_AUTH || !session) return
-
-    try {
-      crossDomainAuth.storeAuthState(session)
-      crossDomainAuth.syncAuthState(session)
-    } catch (error) {
-      console.error("Failed to sync with main domain:", error)
-    }
-  }, [session])
 
   // Initialize auth state
   useEffect(() => {
@@ -74,28 +42,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       try {
-        // First check for cross-domain auth
-        const hasCrossDomainAuth = await checkCrossDomainAuth()
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession()
+        if (error) {
+          errorHandler.logError(error, "get_initial_session")
+        } else {
+          setSession(session)
+          setUser(session?.user ?? null)
 
-        if (!hasCrossDomainAuth) {
-          // Fall back to regular session check
-          const {
-            data: { session },
-            error,
-          } = await supabase.auth.getSession()
-          if (error) {
-            console.error("Error getting session:", error)
-          } else {
-            setSession(session)
-            setUser(session?.user ?? null)
-
-            if (session) {
-              crossDomainAuth.storeAuthState(session)
-            }
+          if (session?.user) {
+            sessionManager.createSession(session.user.id, session.user.email || "")
+            startActivityTracking()
           }
         }
       } catch (error) {
-        console.error("Error in getInitialSession:", error)
+        errorHandler.logError(error as Error, "get_initial_session")
       } finally {
         setLoading(false)
       }
@@ -114,46 +77,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Handle different auth events
       if (event === "SIGNED_IN") {
+        // Track user session in our custom table
         if (session?.user) {
           await trackUserSession(session.user)
-          crossDomainAuth.storeAuthState(session)
-          crossDomainAuth.syncAuthState(session)
+          sessionManager.createSession(session.user.id, session.user.email || "")
+          startActivityTracking()
         }
       } else if (event === "SIGNED_OUT") {
+        // Clear any local state
         setUser(null)
         setSession(null)
-        crossDomainAuth.clearStoredAuthState()
+        sessionManager.clearSession()
+        stopActivityTracking()
       }
     })
 
-    const handleCrossDomainMessage = (event: MessageEvent) => {
-      if (event.origin !== `https://${env.PARENT_DOMAIN}`) return
-
-      if (event.data.type === "KOZKER_AUTH_UPDATE") {
-        const { session: newSession } = event.data
-        if (newSession) {
-          setSession(newSession)
-          setUser(newSession.user)
-          crossDomainAuth.storeAuthState(newSession)
-        } else {
-          setSession(null)
-          setUser(null)
-          crossDomainAuth.clearStoredAuthState()
-        }
-      }
-    }
-
-    if (env.ENABLE_CROSS_DOMAIN_AUTH) {
-      window.addEventListener("message", handleCrossDomainMessage)
-    }
-
     return () => {
       subscription.unsubscribe()
-      if (env.ENABLE_CROSS_DOMAIN_AUTH) {
-        window.removeEventListener("message", handleCrossDomainMessage)
-      }
+      stopActivityTracking()
     }
-  }, [checkCrossDomainAuth])
+  }, [])
 
   // Track user session in our custom table
   const trackUserSession = async (user: User) => {
@@ -170,13 +113,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user_id: user.id,
         session_token: Math.random().toString(36).substring(2, 15),
         device_info: deviceInfo,
-        ip_address: null,
+        ip_address: null, // Will be set by server
         user_agent: navigator.userAgent,
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
         is_active: true,
       })
     } catch (error) {
-      console.error("Error tracking user session:", error)
+      errorHandler.logError(error as Error, "track_user_session", user.id)
     }
   }
 
@@ -186,15 +129,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: new Error("Supabase not configured") as AuthError }
     }
 
+    // Validate input
+    const validation = validateAndSanitize(signUpSchema, { email, password, fullName: metadata?.full_name })
+    if (!validation.success) {
+      return { error: new Error(validation.errors[0]) as AuthError }
+    }
+
+    // Check rate limit
+    const rateLimitResult = authRateLimiter.attempt(email, "signup")
+    if (!rateLimitResult.allowed) {
+      const error = new Error("Too many signup attempts. Please try again later.") as AuthError
+      errorHandler.logError(error, "signup_rate_limit", undefined)
+      return { error }
+    }
+
     try {
+      const startTime = performance.now()
+
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: validation.data.email,
+        password: validation.data.password,
         options: {
-          emailRedirectTo: env.AUTH_REDIRECT_URL,
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin,
           data: metadata || {},
         },
       })
+
+      performanceMonitor.recordMetric("auth_signup", performance.now() - startTime)
 
       if (!error && data.user) {
         // Create user profile in our custom table
@@ -207,11 +168,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           subscription_tier: "free",
           subscription_status: "active",
         })
+
+        // Reset rate limit on success
+        authRateLimiter.reset(email, "signup")
+      } else if (error) {
+        errorHandler.logError(error, "signup_error", undefined)
       }
 
       return { error }
     } catch (error) {
-      return { error: error as AuthError }
+      errorHandler.logError(error as Error, "signup_exception", undefined)
+      return { error: new Error(getSafeErrorMessage(error)) as AuthError }
     }
   }, [])
 
@@ -221,15 +188,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: new Error("Supabase not configured") as AuthError }
     }
 
+    // Validate input
+    const validation = validateAndSanitize(signInSchema, { email, password })
+    if (!validation.success) {
+      return { error: new Error(validation.errors[0]) as AuthError }
+    }
+
+    // Check rate limit
+    const rateLimitResult = authRateLimiter.attempt(email, "signin")
+    if (!rateLimitResult.allowed) {
+      const error = new Error("Too many login attempts. Please try again later.") as AuthError
+      errorHandler.logError(error, "signin_rate_limit", undefined)
+      return { error }
+    }
+
     try {
+      const startTime = performance.now()
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: validation.data.email,
+        password: validation.data.password,
       })
+
+      performanceMonitor.recordMetric("auth_signin", performance.now() - startTime)
+
+      if (!error) {
+        // Reset rate limit on success
+        authRateLimiter.reset(email, "signin")
+      } else {
+        errorHandler.logError(error, "signin_error", undefined)
+      }
 
       return { error }
     } catch (error) {
-      return { error: error as AuthError }
+      errorHandler.logError(error as Error, "signin_exception", undefined)
+      return { error: new Error(getSafeErrorMessage(error)) as AuthError }
     }
   }, [])
 
@@ -240,16 +233,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
+      const startTime = performance.now()
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: env.AUTH_REDIRECT_URL,
+          redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin,
         },
       })
 
+      performanceMonitor.recordMetric("auth_google_signin", performance.now() - startTime)
+
+      if (error) {
+        errorHandler.logError(error, "google_signin_error", undefined)
+      }
+
       return { error }
     } catch (error) {
-      return { error: error as AuthError }
+      errorHandler.logError(error as Error, "google_signin_exception", undefined)
+      return { error: new Error(getSafeErrorMessage(error)) as AuthError }
     }
   }, [])
 
@@ -268,15 +270,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       await supabase.auth.signOut()
-      crossDomainAuth.clearStoredAuthState()
-
-      if (env.ENABLE_CROSS_DOMAIN_AUTH) {
-        crossDomainAuth.syncAuthState(null)
-      }
-
+      sessionManager.clearSession()
+      stopActivityTracking()
       router.push("/")
     } catch (error) {
-      console.error("Error signing out:", error)
+      errorHandler.logError(error as Error, "signout_error", session?.user.id)
     }
   }, [session, router])
 
@@ -288,6 +286,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
+        const startTime = performance.now()
+
         // Update auth user metadata
         const { error: authError } = await supabase.auth.updateUser({
           data: updates,
@@ -304,9 +304,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           })
           .eq("id", user.id)
 
+        performanceMonitor.recordMetric("profile_update", performance.now() - startTime, user.id)
+
+        if (profileError) {
+          errorHandler.logError(profileError, "profile_update_error", user.id)
+        }
+
         return { error: profileError }
       } catch (error) {
-        return { error: error as AuthError }
+        errorHandler.logError(error as Error, "profile_update_exception", user.id)
+        return { error: new Error(getSafeErrorMessage(error)) as AuthError }
       }
     },
     [user],
@@ -322,8 +329,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     updateProfile,
     isConfigured: isSupabaseConfigured,
-    syncWithMainDomain,
-    checkCrossDomainAuth,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

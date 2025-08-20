@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Crown, CreditCard, Calendar, Check, ArrowRight, Clock } from 'lucide-react'
+import { Crown, CreditCard, Calendar, Check, ArrowRight } from "lucide-react"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 interface SubscriptionSettingsProps {
@@ -149,22 +149,13 @@ export function SubscriptionSettings({ user, profile }: SubscriptionSettingsProp
                   ))}
                 </ul>
 
-                <Button 
-                  className="w-full" 
-                  variant={tier.current ? "outline" : (tier.name === "Free" ? "default" : "secondary")} 
-                  disabled={tier.current || tier.name !== "Free"}
-                >
+                <Button className="w-full" variant={tier.current ? "outline" : "default"} disabled={tier.current}>
                   {tier.current ? (
                     "Current Plan"
-                  ) : tier.name === "Free" ? (
-                    <>
-                      Downgrade
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </>
                   ) : (
                     <>
-                      <Clock className="h-4 w-4 mr-2" />
-                      Coming Soon
+                      {tier.name === "Free" ? "Downgrade" : "Upgrade"}
+                      <ArrowRight className="h-4 w-4 ml-2" />
                     </>
                   )}
                 </Button>

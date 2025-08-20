@@ -5,7 +5,6 @@ import type { ReactNode } from "react"
 import { createContext, useContext, useCallback } from "react"
 import { useAuth } from "./auth-context"
 import { supabase } from "@/lib/supabase/client"
-import { env } from "@/lib/env"
 
 interface ToolUsageData {
   toolName: string
@@ -24,7 +23,6 @@ interface AnalyticsContextType {
   trackPageView: (page: string, metadata?: any) => Promise<void>
   trackEvent: (eventName: string, properties?: any) => Promise<void>
   trackConversion: (conversionType: string, value?: number, metadata?: any) => Promise<void>
-  syncAnalyticsWithMainDomain: (data: any) => Promise<void>
 }
 
 const AnalyticsContext = createContext<AnalyticsContextType | undefined>(undefined)
@@ -42,45 +40,6 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       referrer: document.referrer,
       url: window.location.href,
-      domain: window.location.hostname,
-      subdomain: "ai", // Added subdomain identifier for cross-domain tracking
-    }
-  }, [])
-
-  const syncAnalyticsWithMainDomain = useCallback(async (data: any) => {
-    if (!env.ENABLE_CROSS_DOMAIN_AUTH || typeof window === "undefined") return
-
-    try {
-      // Send analytics data to main domain via postMessage
-      window.parent.postMessage(
-        {
-          type: "KOZKER_ANALYTICS_SYNC",
-          data: {
-            ...data,
-            source: "ai.kozker.com",
-            timestamp: new Date().toISOString(),
-          },
-        },
-        `https://${env.PARENT_DOMAIN}`,
-      )
-
-      // Also store in localStorage for persistence
-      const existingData = localStorage.getItem("kozker-analytics-queue") || "[]"
-      const queue = JSON.parse(existingData)
-      queue.push({
-        ...data,
-        source: "ai.kozker.com",
-        timestamp: new Date().toISOString(),
-      })
-
-      // Keep only last 100 entries to prevent storage bloat
-      if (queue.length > 100) {
-        queue.splice(0, queue.length - 100)
-      }
-
-      localStorage.setItem("kozker-analytics-queue", JSON.stringify(queue))
-    } catch (error) {
-      console.error("Failed to sync analytics with main domain:", error)
     }
   }, [])
 
@@ -125,7 +84,6 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
             outputData: data.outputData || {},
             errorMessage: data.errorMessage,
             deviceInfo,
-            source: "ai.kozker.com", // Added source tracking for cross-domain analytics
             ...data.metadata,
           },
         }
@@ -141,22 +99,12 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
 
         console.log("✅ Successfully inserted tool usage:", result)
 
-        await syncAnalyticsWithMainDomain({
-          type: "tool_usage",
-          toolName: data.toolName,
-          toolId: data.toolId,
-          toolCategory: data.toolCategory,
-          success: data.success,
-          userId: user.id,
-          userEmail: user.email,
-        })
-
         await updateUserAnalytics()
       } catch (error) {
         console.error("❌ Error tracking tool usage:", error)
       }
     },
-    [user, session, getDeviceInfo, syncAnalyticsWithMainDomain],
+    [user, session, getDeviceInfo],
   )
 
   const updateUserAnalytics = useCallback(async () => {
@@ -214,20 +162,11 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
         console.error("❌ Error upserting user_analytics:", upsertError)
       } else {
         console.log("✅ Successfully updated user analytics")
-
-        await syncAnalyticsWithMainDomain({
-          type: "user_analytics_update",
-          userId: user.id,
-          totalActions,
-          uniqueTools,
-          successRate,
-          engagementScore,
-        })
       }
     } catch (error) {
       console.error("❌ Error in updateUserAnalytics:", error)
     }
-  }, [user, syncAnalyticsWithMainDomain])
+  }, [user])
 
   const calculateEngagementScore = (actions: number, uniqueTools: number, successRate: number) => {
     // Base score from actions (0-40 points)
@@ -248,81 +187,28 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
   // Track page views
   const trackPageView = useCallback(
     async (page: string, metadata?: any) => {
-      if (!user || !env.ENABLE_ANALYTICS) return
-
+      if (!user) return
       console.log("📄 Page view tracked:", page, metadata)
-
-      try {
-        const deviceInfo = getDeviceInfo()
-
-        const pageViewData = {
-          user_id: user.id,
-          page,
-          metadata: {
-            ...metadata,
-            deviceInfo,
-            source: "ai.kozker.com",
-          },
-        }
-
-        // Track in database if we have a page_views table
-        // await supabase.from("page_views").insert(pageViewData)
-
-        // Sync with main domain
-        await syncAnalyticsWithMainDomain({
-          type: "page_view",
-          page,
-          userId: user.id,
-          ...metadata,
-        })
-      } catch (error) {
-        console.error("Error tracking page view:", error)
-      }
     },
-    [user, getDeviceInfo, syncAnalyticsWithMainDomain],
+    [user],
   )
 
   // Track general events
   const trackEvent = useCallback(
     async (eventName: string, properties?: any) => {
-      if (!user || !env.ENABLE_ANALYTICS) return
-
+      if (!user) return
       console.log("📊 Event tracked:", eventName, properties)
-
-      try {
-        await syncAnalyticsWithMainDomain({
-          type: "event",
-          eventName,
-          properties,
-          userId: user.id,
-        })
-      } catch (error) {
-        console.error("Error tracking event:", error)
-      }
     },
-    [user, syncAnalyticsWithMainDomain],
+    [user],
   )
 
   // Track conversions
   const trackConversion = useCallback(
     async (conversionType: string, value?: number, metadata?: any) => {
-      if (!user || !env.ENABLE_ANALYTICS) return
-
+      if (!user) return
       console.log("💰 Conversion tracked:", conversionType, value, metadata)
-
-      try {
-        await syncAnalyticsWithMainDomain({
-          type: "conversion",
-          conversionType,
-          value,
-          metadata,
-          userId: user.id,
-        })
-      } catch (error) {
-        console.error("Error tracking conversion:", error)
-      }
     },
-    [user, syncAnalyticsWithMainDomain],
+    [user],
   )
 
   const value: AnalyticsContextType = {
@@ -330,7 +216,6 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
     trackPageView,
     trackEvent,
     trackConversion,
-    syncAnalyticsWithMainDomain,
   }
 
   return <AnalyticsContext.Provider value={value}>{children}</AnalyticsContext.Provider>

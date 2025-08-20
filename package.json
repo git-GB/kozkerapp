@@ -1,55 +1,12 @@
 {
-  "name": "kozker-ai-tools-standalone",
-  "version": "2.0.0",
+  "name": "ghost-netlify-starter",
+  "version": "0.1.0",
   "private": true,
-  "description": "Standalone AI-powered tools application for ai.kozker.com - Complete migration from kozker.com",
-  "keywords": [
-    "ai-tools",
-    "business-automation",
-    "nextjs",
-    "react",
-    "typescript",
-    "supabase",
-    "kozker",
-    "standalone-app",
-    "cross-domain-auth",
-    "migration"
-  ],
-  "homepage": "https://ai.kozker.com",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/kozker/ai-tools-standalone"
-  },
-  "license": "MIT",
-  "author": "Kozker Team",
   "scripts": {
-    "analyze": "ANALYZE=true npm run build",
     "build": "next build",
-    "clean": "rm -rf .next out",
-    "deploy:netlify": "npm run build && netlify deploy --prod --dir=.next",
-    "deploy:vercel": "vercel --prod",
     "dev": "next dev",
-    "export": "next build && next export",
     "lint": "next lint",
-    "lint:fix": "next lint --fix",
-    "migrate": "./scripts/migrate-to-ai-domain.sh",
-    "start": "next start",
-    "test": "echo \"No tests specified\" && exit 0",
-    "test-db": "node scripts/test-database-connection.js",
-    "type-check": "tsc --noEmit",
-    "validate": "node scripts/validate-migration.js"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "start": "next start"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
@@ -69,6 +26,7 @@
     "@supabase/auth-helpers-nextjs": "latest",
     "@supabase/supabase-js": "latest",
     "@tryghost/content-api": "latest",
+    "canvas": "^2.11.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "latest",
@@ -85,7 +43,7 @@
     "react-hook-form": "latest",
     "react-markdown": "latest",
     "recharts": "latest",
-    "sonner": "latest",
+    "resend": "^4.0.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.22.4"
@@ -94,15 +52,12 @@
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/tryghost__content-api": "^1.3.14",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.0.3",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
   }
 }

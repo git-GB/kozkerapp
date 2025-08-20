@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -103,7 +104,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = "signin", trigger = "
   // Handle input changes
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-    if (error) setError(null)
+    if (error) setError(null) // Clear error when user starts typing
   }
 
   if (!isConfigured) {
@@ -138,7 +139,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = "signin", trigger = "
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Sparkles className="h-6 w-6" />
-              <h2 className="text-2xl font-bold">Welcome to Kozker AI</h2>
+              <h2 className="text-2xl font-bold">Welcome to Kozker</h2>
             </div>
 
             {trigger === "auto" && (

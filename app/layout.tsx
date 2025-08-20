@@ -3,34 +3,37 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { CurrencyProvider } from "@/contexts/currency-context"
 import { AuthProvider } from "@/contexts/auth-context"
 import { AnalyticsProvider } from "@/contexts/analytics-context"
-import { CrossDomainProvider } from "@/components/cross-domain/CrossDomainProvider"
-import Header from "@/components/layout/Header"
-import Footer from "@/components/layout/Footer"
-import { Toaster } from "@/components/ui/sonner"
+import { SecurityProvider } from "@/components/security/security-provider"
+import Header from "@/components/header"
+import Footer from "@/components/footer"
+import Analytics from "@/components/analytics"
+import ChatWidget from "@/components/ChatWidget"
+
 import { Suspense } from "react"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: {
-    default: "AI Tools - Kozker | AI-Powered Business Solutions",
-    template: "%s | AI Tools - Kozker",
+    default: "Kozker Tech - AI Automation & Business Intelligence Solutions",
+    template: "%s | Kozker",
   },
   description:
-    "Access powerful AI tools for business automation, content generation, data analysis, and more. Complete suite of AI-powered solutions for modern businesses.",
+    "Transform your business with AI-powered web design, WhatsApp automation, Power BI analytics, and comprehensive digital solutions. Get started with our LaunchPad, GrowthSuite, and Intelligence packages.",
   keywords: [
-    "ai tools",
-    "business automation",
-    "ai content generation",
-    "data analysis",
+    "business solutions",
     "business intelligence",
+    "power bi",
+    "whatsapp automation",
+    "web design",
     "ai solutions",
-    "productivity tools",
-    "automation tools",
-    "ai platform",
-    "business tools",
+    "data analytics",
+    "business automation",
+    "web development",
+    "cloud solutions",
   ],
   authors: [{ name: "Kozker Team" }],
   creator: "Kozker Tech",
@@ -40,7 +43,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://ai.kozker.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://kozker.com"),
   alternates: {
     canonical: "/",
   },
@@ -48,14 +51,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    title: "AI Tools - Kozker | AI-Powered Business Solutions",
-    description: "Access powerful AI tools for business automation, content generation, and data analysis.",
-    siteName: "AI Tools - Kozker",
+    title: "Kozker Tech - AI Automation & Business Intelligence Solutions",
+    description: "Transform your business with AI-powered solutions, automation, and analytics.",
+    siteName: "Kozker Tech",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Tools - Kozker",
-    description: "Access powerful AI tools for business automation, content generation, and data analysis.",
+    title: "Kozker Tech - AI Solutions",
+    description: "Transform your business with AI-powered solutions, automation, and analytics.",
   },
   robots: {
     index: true,
@@ -80,20 +83,23 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <CrossDomainProvider>
-            <AuthProvider>
-              <AnalyticsProvider>
-                <Suspense fallback={null}>
-                  <div className="flex min-h-screen flex-col">
-                    <Header />
-                    <main className="flex-1">{children}</main>
-                    <Footer />
-                  </div>
-                  <Toaster />
-                </Suspense>
-              </AnalyticsProvider>
-            </AuthProvider>
-          </CrossDomainProvider>
+          <CurrencyProvider>
+            <SecurityProvider>
+              <AuthProvider>
+                <AnalyticsProvider>
+                  <Suspense fallback={null}>
+                    <div className="flex min-h-screen flex-col">
+                      <Header />
+                      <main className="flex-1">{children}</main>
+                      <Footer />
+                    </div>
+                    <Analytics />
+                    <ChatWidget />
+                  </Suspense>
+                </AnalyticsProvider>
+              </AuthProvider>
+            </SecurityProvider>
+          </CurrencyProvider>
         </ThemeProvider>
       </body>
     </html>

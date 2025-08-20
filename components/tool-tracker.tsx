@@ -16,15 +16,7 @@ export function ToolTracker({ toolId, action = "use", metadata = {} }: ToolTrack
 
   useEffect(() => {
     if (user && toolId) {
-      trackToolUsage({
-        toolName: toolId,
-        toolId: toolId,
-        metadata: {
-          action,
-          source: "ai.kozker.com",
-          ...metadata,
-        },
-      })
+      trackToolUsage(toolId, action, metadata)
     }
   }, [toolId, action, user, trackToolUsage, metadata])
 

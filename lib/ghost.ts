@@ -1,11 +1,22 @@
 import GhostContentAPI from "@tryghost/content-api"
 
 // Create API instance with site credentials
-const api = new GhostContentAPI({
-  url: process.env.GHOST_URL || "",
-  key: process.env.GHOST_CONTENT_API_KEY || "",
-  version: "v5.0",
-})
+let api: GhostContentAPI | null = null
+
+try {
+  if (process.env.GHOST_URL && process.env.GHOST_CONTENT_API_KEY) {
+    api = new GhostContentAPI({
+      url: process.env.GHOST_URL,
+      key: process.env.GHOST_CONTENT_API_KEY,
+      version: "v5.0",
+    })
+  } else {
+    console.error("Missing environment variables for Ghost API initialization")
+  }
+} catch (error) {
+  console.error("Failed to initialize Ghost API:", error)
+  api = null
+}
 
 export interface GhostPost {
   id: string
@@ -99,6 +110,10 @@ export interface GhostSettings {
 // Get all posts
 export async function getPosts(limit?: number): Promise<GhostPost[]> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning empty posts array")
+      return []
+    }
     const posts = await api.posts.browse({
       limit: limit || "all",
       include: ["tags", "authors"],
@@ -114,6 +129,10 @@ export async function getPosts(limit?: number): Promise<GhostPost[]> {
 // Get single post by slug
 export async function getPost(slug: string): Promise<GhostPost | null> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning null for post")
+      return null
+    }
     const post = await api.posts.read({ slug }, { include: ["tags", "authors"] })
     return post as GhostPost
   } catch (error) {
@@ -125,6 +144,10 @@ export async function getPost(slug: string): Promise<GhostPost | null> {
 // Get all tags
 export async function getTags(): Promise<GhostTag[]> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning empty tags array")
+      return []
+    }
     const tags = await api.tags.browse({
       limit: "all",
       include: ["count.posts"],
@@ -139,6 +162,10 @@ export async function getTags(): Promise<GhostTag[]> {
 // Get single tag by slug
 export async function getTag(slug: string): Promise<GhostTag | null> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning null for tag")
+      return null
+    }
     const tag = await api.tags.read({ slug }, { include: ["count.posts"] })
     return tag as GhostTag
   } catch (error) {
@@ -150,6 +177,10 @@ export async function getTag(slug: string): Promise<GhostTag | null> {
 // Get posts by tag
 export async function getPostsByTag(tagSlug: string, limit?: number): Promise<GhostPost[]> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning empty posts array")
+      return []
+    }
     const posts = await api.posts.browse({
       limit: limit || "all",
       filter: `tag:${tagSlug}`,
@@ -166,6 +197,10 @@ export async function getPostsByTag(tagSlug: string, limit?: number): Promise<Gh
 // Get featured posts
 export async function getFeaturedPosts(limit = 3): Promise<GhostPost[]> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning empty featured posts array")
+      return []
+    }
     const posts = await api.posts.browse({
       limit,
       filter: "featured:true",
@@ -182,6 +217,10 @@ export async function getFeaturedPosts(limit = 3): Promise<GhostPost[]> {
 // Get site settings
 export async function getSettings(): Promise<GhostSettings | null> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning null for settings")
+      return null
+    }
     const settings = await api.settings.browse()
     return settings as GhostSettings
   } catch (error) {
@@ -193,6 +232,10 @@ export async function getSettings(): Promise<GhostSettings | null> {
 // Search posts
 export async function searchPosts(query: string, limit = 10): Promise<GhostPost[]> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning empty search results")
+      return []
+    }
     const posts = await api.posts.browse({
       limit,
       filter: `title:~'${query}',excerpt:~'${query}'`,
@@ -209,6 +252,10 @@ export async function searchPosts(query: string, limit = 10): Promise<GhostPost[
 // Get recent posts
 export async function getRecentPosts(limit = 5): Promise<GhostPost[]> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning empty recent posts array")
+      return []
+    }
     const posts = await api.posts.browse({
       limit,
       include: ["tags", "authors"],
@@ -224,6 +271,10 @@ export async function getRecentPosts(limit = 5): Promise<GhostPost[]> {
 // Get related posts (posts with similar tags)
 export async function getRelatedPosts(currentPost: GhostPost, limit = 3): Promise<GhostPost[]> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning empty related posts array")
+      return []
+    }
     if (!currentPost.tags || currentPost.tags.length === 0) {
       return getRecentPosts(limit)
     }
@@ -246,6 +297,10 @@ export async function getRelatedPosts(currentPost: GhostPost, limit = 3): Promis
 // Get case studies (posts with 'case-study' tag)
 export async function getCaseStudies(limit?: number): Promise<GhostPost[]> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning empty case studies array")
+      return []
+    }
     const posts = await api.posts.browse({
       limit: limit || "all",
       filter: "tag:case-study",
@@ -262,6 +317,10 @@ export async function getCaseStudies(limit?: number): Promise<GhostPost[]> {
 // Get single case study by slug
 export async function getCaseStudy(slug: string): Promise<GhostPost | null> {
   try {
+    if (!api) {
+      console.warn("Ghost API not available - returning null for case study")
+      return null
+    }
     const post = await api.posts.read(
       { slug },
       {

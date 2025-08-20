@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "./ghost-content.css";
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -10,8 +12,6 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 22 100% 59%;
-    --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
@@ -24,6 +24,8 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+
+    /* Chart colors */
     --chart-1: #ff6e30;
     --chart-2: #3b82f6;
     --chart-3: #10b981;
@@ -31,25 +33,25 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222.2 84% 4.9%; /* Much darker background */
     --foreground: 210 40% 98%;
-    --card: 217.2 32.6% 7%;
+    --card: 217.2 32.6% 7%; /* Darker card background */
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 22 100% 59%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 10%;
+    --secondary: 217.2 32.6% 10%; /* Darker secondary */
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 10%;
+    --muted: 217.2 32.6% 10%; /* Darker muted */
     --muted-foreground: 215 20.2% 75%;
-    --accent: 217.2 32.6% 10%;
+    --accent: 217.2 32.6% 10%; /* Darker accent */
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 15%;
+    --border: 217.2 32.6% 15%; /* Darker border */
     --input: 217.2 32.6% 15%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Chart colors - adjusted for dark mode */
     --chart-1: #ff8e50;
     --chart-2: #60a5fa;
     --chart-3: #34d399;
@@ -110,4 +112,355 @@
 /* Improved focus styles for dark mode */
 .dark *:focus-visible {
   @apply outline-none ring-2 ring-primary/50;
+}
+
+/* Dark mode specific styles */
+.dark .bg-white {
+  @apply bg-gray-900;
+}
+
+.dark .bg-gray-50 {
+  @apply bg-gray-900;
+}
+
+.dark .bg-gray-100 {
+  @apply bg-gray-800;
+}
+
+.dark .bg-gray-200 {
+  @apply bg-gray-700;
+}
+
+.dark .border-gray-200 {
+  @apply border-gray-700;
+}
+
+.dark .shadow-md {
+  @apply shadow-none;
+}
+
+.dark .shadow-lg {
+  @apply shadow-none;
+}
+
+/* Mobile Responsive Chat Widget Styles */
+/* Add this to your globals.css */
+
+/* Kozker Brand Colors - Base */
+.n8n-chat-widget {
+  --n8n-chat-primary-color: #ff6e30 !important;
+  --n8n-chat-secondary-color: #d45a24 !important;
+  --n8n-chat-background-color: #ffffff !important;
+  --n8n-chat-font-color: #333333 !important;
+}
+
+/* Mobile-First Responsive Design */
+@media (max-width: 768px) {
+  /* Full-screen chat on mobile */
+  .n8n-chat-widget .chat-container {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    z-index: 9999 !important;
+  }
+
+  /* Adjust positioning for left/right variants */
+  .n8n-chat-widget .chat-container.position-left {
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  /* Mobile toggle button positioning */
+  .n8n-chat-widget .chat-toggle {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    z-index: 9998 !important;
+    box-shadow: 0 4px 16px rgba(255, 110, 48, 0.3) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .n8n-chat-widget .chat-toggle.position-left {
+    left: 20px !important;
+    right: auto !important;
+  }
+
+  .n8n-chat-widget .chat-toggle:active {
+    transform: scale(0.95) !important;
+  }
+
+  /* Brand header mobile adjustments */
+  .n8n-chat-widget .brand-header {
+    padding: 16px 20px !important;
+    border-bottom: 1px solid rgba(255, 110, 48, 0.1) !important;
+    background: linear-gradient(135deg, #ff6e30 0%, #d45a24 100%) !important;
+    color: white !important;
+    position: relative !important;
+  }
+
+  .n8n-chat-widget .brand-header img {
+    width: 28px !important;
+    height: 28px !important;
+    filter: brightness(0) invert(1) !important; /* Make logo white */
+  }
+
+  .n8n-chat-widget .brand-header span {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: white !important;
+  }
+
+  .n8n-chat-widget .close-button {
+    color: white !important;
+    font-size: 24px !important;
+    padding: 8px !important;
+    right: 12px !important;
+    opacity: 0.9 !important;
+  }
+
+  .n8n-chat-widget .close-button:hover {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+  }
+
+  /* Welcome screen mobile adjustments */
+  .n8n-chat-widget .new-conversation {
+    padding: 32px 24px !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  .n8n-chat-widget .welcome-text {
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    margin-bottom: 32px !important;
+    line-height: 1.2 !important;
+    color: var(--n8n-chat-font-color) !important;
+  }
+
+  .n8n-chat-widget .new-chat-btn {
+    padding: 18px 32px !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    border-radius: 12px !important;
+    min-height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+    background: linear-gradient(135deg, #ff6e30 0%, #d45a24 100%) !important;
+    box-shadow: 0 4px 16px rgba(255, 110, 48, 0.3) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .n8n-chat-widget .new-chat-btn:active {
+    transform: scale(0.98) !important;
+  }
+
+  .n8n-chat-widget .response-text {
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+    opacity: 0.8 !important;
+  }
+
+  /* Chat interface mobile adjustments */
+  .n8n-chat-widget .chat-messages {
+    padding: 20px 16px !important;
+    padding-bottom: 80px !important; /* Space for input */
+  }
+
+  .n8n-chat-widget .chat-message {
+    padding: 16px 20px !important;
+    margin: 12px 0 !important;
+    border-radius: 20px !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    max-width: 85% !important;
+    word-wrap: break-word !important;
+  }
+
+  .n8n-chat-widget .chat-message.user {
+    background: linear-gradient(135deg, #ff6e30 0%, #d45a24 100%) !important;
+    color: white !important;
+    border-radius: 20px 20px 6px 20px !important;
+  }
+
+  .n8n-chat-widget .chat-message.bot {
+    background: #f8f9fa !important;
+    color: var(--n8n-chat-font-color) !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: 20px 20px 20px 6px !important;
+  }
+
+  /* Input area mobile optimization */
+  .n8n-chat-widget .chat-input {
+    padding: 16px 16px 20px 16px !important;
+    background: white !important;
+    border-top: 1px solid #e9ecef !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    display: flex !important;
+    gap: 12px !important;
+    align-items: flex-end !important;
+  }
+
+  .n8n-chat-widget .chat-input textarea {
+    flex: 1 !important;
+    padding: 16px 20px !important;
+    border: 2px solid #e9ecef !important;
+    border-radius: 25px !important;
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+    resize: none !important;
+    min-height: 48px !important;
+    max-height: 120px !important;
+    font-family: inherit !important;
+    background: #f8f9fa !important;
+    transition: border-color 0.3s ease !important;
+  }
+
+  .n8n-chat-widget .chat-input textarea:focus {
+    outline: none !important;
+    border-color: #ff6e30 !important;
+    background: white !important;
+    box-shadow: 0 0 0 3px rgba(255, 110, 48, 0.1) !important;
+  }
+
+  .n8n-chat-widget .chat-input textarea::placeholder {
+    color: #6c757d !important;
+    opacity: 0.7 !important;
+  }
+
+  .n8n-chat-widget .chat-input button {
+    background: linear-gradient(135deg, #ff6e30 0%, #d45a24 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 48px !important;
+    height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(255, 110, 48, 0.3) !important;
+    flex-shrink: 0 !important;
+  }
+
+  .n8n-chat-widget .chat-input button:active {
+    transform: scale(0.95) !important;
+  }
+
+  .n8n-chat-widget .chat-input button:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+  }
+
+  /* Footer mobile adjustments */
+  .n8n-chat-widget .chat-footer {
+    padding: 12px 16px !important;
+    background: #f8f9fa !important;
+    border-top: 1px solid #e9ecef !important;
+  }
+
+  .n8n-chat-widget .chat-footer a {
+    color: #ff6e30 !important;
+    font-size: 12px !important;
+    text-decoration: none !important;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .n8n-chat-widget .chat-container {
+    width: 420px !important;
+    height: 650px !important;
+    bottom: 20px !important;
+    right: 20px !important;
+  }
+
+  .n8n-chat-widget .chat-container.position-left {
+    left: 20px !important;
+    right: auto !important;
+  }
+
+  .n8n-chat-widget .chat-toggle {
+    width: 58px !important;
+    height: 58px !important;
+  }
+}
+
+/* Desktop enhancements */
+@media (min-width: 1025px) {
+  .n8n-chat-widget .chat-container {
+    width: 380px !important;
+    height: 600px !important;
+    box-shadow: 0 12px 48px rgba(255, 110, 48, 0.15) !important;
+    border: 1px solid rgba(255, 110, 48, 0.1) !important;
+  }
+
+  .n8n-chat-widget .chat-toggle:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 6px 20px rgba(255, 110, 48, 0.4) !important;
+  }
+
+  .n8n-chat-widget .new-chat-btn:hover {
+    transform: scale(1.02) !important;
+    box-shadow: 0 6px 20px rgba(255, 110, 48, 0.4) !important;
+  }
+
+  .n8n-chat-widget .chat-input button:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 16px rgba(255, 110, 48, 0.4) !important;
+  }
+}
+
+/* Kozker Brand Colors on All Interactive Elements */
+.n8n-chat-widget .chat-toggle,
+.n8n-chat-widget .new-chat-btn,
+.n8n-chat-widget .chat-input button {
+  background: linear-gradient(135deg, #ff6e30 0%, #d45a24 100%) !important;
+}
+
+.n8n-chat-widget .chat-message.user {
+  background: linear-gradient(135deg, #ff6e30 0%, #d45a24 100%) !important;
+}
+
+.n8n-chat-widget .chat-footer a {
+  color: #ff6e30 !important;
+}
+
+/* Accessibility improvements */
+.n8n-chat-widget .chat-toggle:focus,
+.n8n-chat-widget .new-chat-btn:focus,
+.n8n-chat-widget .chat-input button:focus {
+  outline: 2px solid #ff6e30 !important;
+  outline-offset: 2px !important;
+}
+
+/* Loading states */
+.n8n-chat-widget .chat-input button:disabled::after {
+  content: "..." !important;
+  animation: dots 1s infinite !important;
+}
+
+@keyframes dots {
+  0%, 20% { content: "." !important; }
+  40% { content: ".." !important; }
+  60%, 100% { content: "..." !important; }
 }
