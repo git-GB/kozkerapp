@@ -152,12 +152,12 @@ export default function PricingPage() {
   ]
 
   const addOns = [
-    { name: "Additional Website / Brand", price: 3999 },
-    { name: "Custom AI Flow", price: 2499 },
-    { name: "WhatsApp API Setup + Chat History", price: 1999 },
-    { name: "Dashboard Add-on (New dept/view)", price: 2999 },
-    { name: "CRM/ERP Custom Integration", price: 4999 },
-    { name: "Training Session (Team)", price: 2999 },
+    { name: "Additional Website / Brand", price: 3999, suffix: "" },
+    { name: "Custom AI Flow", price: 2499, suffix: "/flow" },
+    { name: "WhatsApp API Setup + Chat History", price: 1999, suffix: "" },
+    { name: "Dashboard Add-on (New dept/view)", price: 2999, suffix: "/dashboard" },
+    { name: "CRM/ERP Custom Integration", price: 4999, suffix: "/integration" },
+    { name: "Training Session (Team)", price: 2999, suffix: "/session" },
   ]
 
   const freeTools = {
@@ -213,7 +213,7 @@ export default function PricingPage() {
     ],
   }
 
-  const renderPricingCards = (plans: any[], bgColor: string) => (
+  const renderPricingCards = (plans: any[]) => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {plans.map((plan, index) => (
         <Card
@@ -234,16 +234,15 @@ export default function PricingPage() {
             <div className="text-center space-y-2">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Setup Fee</p>
-                <div className="text-2xl font-bold">
-                  <PriceDisplay amount={plan.setupFee} />
-                </div>
+                <PriceDisplay amount={plan.setupFee} className="text-2xl font-bold" />
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Monthly Fee</p>
-                <div className="text-xl font-semibold text-primary">
-                  <PriceDisplay amount={plan.monthlyFee} />
-                  /mo
-                </div>
+                <PriceDisplay 
+                  amount={plan.monthlyFee} 
+                  period="/mo"
+                  className="text-xl font-semibold text-primary" 
+                />
               </div>
             </div>
 
@@ -312,7 +311,7 @@ export default function PricingPage() {
         <p className="text-xl text-muted-foreground leading-relaxed mb-8">
           From rapid launches to enterprise intelligence - find the perfect solution for your business stage
         </p>
-        <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground flex-wrap">
           <div className="flex items-center gap-2">
             <Check className="h-4 w-4 text-green-500" />
             <span>All prices in INR</span>
@@ -358,7 +357,7 @@ export default function PricingPage() {
             </p>
           </div>
 
-          {renderPricingCards(launchpadPlans, "bg-green-50")}
+          {renderPricingCards(launchpadPlans)}
           {renderFreeTools(freeTools.launchpad, "bg-green-50")}
         </TabsContent>
 
@@ -375,7 +374,7 @@ export default function PricingPage() {
             </p>
           </div>
 
-          {renderPricingCards(growthsuitePlans, "bg-blue-50")}
+          {renderPricingCards(growthsuitePlans)}
           {renderFreeTools(freeTools.growthsuite, "bg-blue-50")}
         </TabsContent>
 
@@ -392,7 +391,7 @@ export default function PricingPage() {
             </p>
           </div>
 
-          {renderPricingCards(intelligencePlans, "bg-purple-50")}
+          {renderPricingCards(intelligencePlans)}
           {renderFreeTools(freeTools.intelligence, "bg-purple-50")}
         </TabsContent>
       </Tabs>
@@ -409,17 +408,15 @@ export default function PricingPage() {
             <Card key={index} className="border hover:border-primary/40 transition-all">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-semibold mb-1">{addon.name}</h4>
-                    <div className="text-lg font-bold text-primary">
-                      <PriceDisplay amount={addon.price} />
-                      {addon.name.includes("session") && "/session"}
-                      {addon.name.includes("site") && "/site"}
-                      {addon.name.includes("flow") && "/flow"}
-                      {addon.name.includes("report") && "/report"}
-                    </div>
+                    <PriceDisplay 
+                      amount={addon.price} 
+                      period={addon.suffix}
+                      className="text-lg font-bold text-primary" 
+                    />
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="ml-4">
                     Add
                   </Button>
                 </div>

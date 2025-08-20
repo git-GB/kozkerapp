@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/contexts/auth-context"
 import { AnalyticsProvider } from "@/contexts/analytics-context"
+import { CurrencyProvider } from "@/contexts/currency-context"
 import { CrossDomainProvider } from "@/components/cross-domain/CrossDomainProvider"
 import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
@@ -83,14 +84,16 @@ export default function RootLayout({
           <CrossDomainProvider>
             <AuthProvider>
               <AnalyticsProvider>
-                <Suspense fallback={null}>
-                  <div className="flex min-h-screen flex-col">
-                    <Header />
-                    <main className="flex-1">{children}</main>
-                    <Footer />
-                  </div>
-                  <Toaster />
-                </Suspense>
+                <CurrencyProvider>
+                  <Suspense fallback={null}>
+                    <div className="flex min-h-screen flex-col">
+                      <Header />
+                      <main className="flex-1">{children}</main>
+                      <Footer />
+                    </div>
+                    <Toaster />
+                  </Suspense>
+                </CurrencyProvider>
               </AnalyticsProvider>
             </AuthProvider>
           </CrossDomainProvider>

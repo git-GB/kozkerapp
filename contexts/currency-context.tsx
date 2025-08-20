@@ -19,19 +19,37 @@ const USD_TO_INR = 83.5
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const [currency, setCurrency] = useState<Currency>("INR")
+  const [isClient, setIsClient] = useState(false)
+
+  // Set client flag after mount to avoid hydration issues
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Try to load saved preference from localStorage on client
   useEffect(() => {
-    const savedCurrency = localStorage.getItem("preferredCurrency")
-    if (savedCurrency === "USD" || savedCurrency === "INR") {
-      setCurrency(savedCurrency)
+    if (isClient) {
+      try {
+        const savedCurrency = localStorage.getItem("preferredCurrency")
+        if (savedCurrency === "USD" || savedCurrency === "INR") {
+          setCurrency(savedCurrency)
+        }
+      } catch (error) {
+        console.warn("Failed to load currency preference from localStorage:", error)
+      }
     }
-  }, [])
+  }, [isClient])
 
   // Save preference when it changes
   useEffect(() => {
-    localStorage.setItem("preferredCurrency", currency)
-  }, [currency])
+    if (isClient) {
+      try {
+        localStorage.setItem("preferredCurrency", currency)
+      } catch (error) {
+        console.warn("Failed to save currency preference to localStorage:", error)
+      }
+    }
+  }, [currency, isClient])
 
   const toggleCurrency = () => {
     setCurrency((prev) => (prev === "USD" ? "INR" : "USD"))
@@ -71,7 +89,10 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 export function useCurrency() {
   const context = useContext(CurrencyContext)
   if (context === undefined) {
-    throw new Error("useCurrency must be used within a CurrencyProvider")
+    throw new Error(
+      "useCurrency must be used within a CurrencyProvider. " +
+      "Make sure to wrap your app or component tree with <CurrencyProvider>."
+    )
   }
   return context
 }

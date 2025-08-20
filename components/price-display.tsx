@@ -9,7 +9,19 @@ interface PriceDisplayProps {
 }
 
 export function PriceDisplay({ amount, period, className = "" }: PriceDisplayProps) {
-  const { formatPrice } = useCurrency()
+  // Add error boundary for currency context
+  let formatPrice: (amount: number) => string
+  
+  try {
+    const currencyContext = useCurrency()
+    formatPrice = currencyContext.formatPrice
+  } catch (error) {
+    // Fallback formatting when context is not available
+    formatPrice = (amount: number) => {
+      const validAmount = typeof amount === "number" && !isNaN(amount) ? amount : 0
+      return `₹${validAmount.toLocaleString("en-IN")}`
+    }
+  }
 
   // Ensure amount is a valid number
   const validAmount = typeof amount === "number" && !isNaN(amount) ? amount : 0
