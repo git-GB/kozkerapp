@@ -1,4 +1,4 @@
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from '@supabase/ssr'
 import { env } from "@/lib/env"
 
 // Check if Supabase environment variables are available
@@ -8,31 +8,31 @@ export const isSupabaseConfigured =
   typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
 
-export const supabase = createClientComponentClient({
-  supabaseUrl: env.SUPABASE_URL,
-  supabaseKey: env.SUPABASE_ANON_KEY,
-  options: {
+export const supabase = createBrowserClient(
+  env.SUPABASE_URL,
+  env.SUPABASE_ANON_KEY,
+  {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
       flowType: "pkce",
-      cookieOptions: {
-        name: "kozker-auth-token",
-        domain: env.ENABLE_CROSS_DOMAIN_AUTH ? `.${env.PARENT_DOMAIN}` : undefined,
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-        httpOnly: false,
-        secure: true,
-        sameSite: "lax",
-      },
     },
     global: {
       headers: {
         "X-Client-Info": "kozker-ai-tools",
       },
     },
-  },
-})
+    cookieOptions: {
+      name: "kozker-auth-token",
+      domain: env.ENABLE_CROSS_DOMAIN_AUTH ? `.${env.PARENT_DOMAIN}` : undefined,
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      httpOnly: false,
+      secure: true,
+      sameSite: "lax",
+    },
+  }
+)
 
 export const crossDomainAuth = {
   // Store auth state in localStorage for cross-domain access
